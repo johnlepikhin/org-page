@@ -56,6 +56,7 @@ deleted. PUB-ROOT-DIR is the root publication directory."
              (beginning-of-buffer)
              ;; somewhere need `buffer-file-name',make them happy
              (setq buffer-file-name org-file)
+             (cd (file-name-directory org-file))
              (setq attr-cell (op/get-org-file-options
                               pub-root-dir
                               (member org-file upd-list)))
@@ -148,6 +149,7 @@ content of the buffer will be converted into html."
                 ;; "<a[^>]+href=\"\\([^\"]+\\)\"[^>]*>\\([^<]*\\)</a>" nil t)
                 "<[a-zA-Z]+[^/>]+\\(src\\|href\\|data\\)=\"\\([^\"]+\\)\"[^>]*>" nil t)
           (setq asset-path (match-string 2))
+          (setq asset-path (replace-regexp-in-string "^file://" "" asset-path))
           (when (not (or (string-prefix-p "http://" asset-path)
                          (string-prefix-p "https://" asset-path)
                          (string-prefix-p "mailto:" asset-path)
@@ -170,9 +172,10 @@ file: %s." asset-path filename)
 ancestor directory of assets directory %s." pub-root-dir assets-dir))
               (setq converted-path
                     (concat "/" (file-relative-name pub-abs-path pub-root-dir)))
+              (setq rex-asset-path (regexp-quote asset-path))
               (setq post-content
                     (replace-regexp-in-string
-                     (regexp-quote asset-path) converted-path post-content))))))
+                     (concat "\\(file://\\)?" rex-asset-path) converted-path post-content))))))
       (setq component-table (ht ("header" (op/render-header))
                                 ("nav" (op/render-navigation-bar))
                                 ("content" post-content)
